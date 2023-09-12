@@ -3,12 +3,29 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.contrib import messages
 
-from .models import User
+from .forms import *
+from .models import *
 
 
 def index(request):
-    return render(request, "network/index.html")
+    # if POST request, new post was submitted
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            new_post = form.save(commit=False)
+            new_post.user = request.user
+            new_post.save()
+            messages.success(request, "Post created successfully.")
+            return HttpResponseRedirect(reverse('index'))
+    else:
+        form = PostForm()
+        posts = Post.objects.all()
+    return render(request, "network/index.html", {
+        'form' : form,
+        'posts' : posts
+    })
 
 
 def login_view(request):
