@@ -21,7 +21,7 @@ def index(request):
             return HttpResponseRedirect(reverse('index'))
     else:
         form = PostForm()
-        posts = Post.objects.all()
+        posts = Post.objects.all().order_by('-created')
     return render(request, "network/index.html", {
         'form' : form,
         'posts' : posts
