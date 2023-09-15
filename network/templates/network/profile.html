@@ -1,0 +1,21 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+<h1>This is: {{ user_profile.username }}</h1>
+<div>
+    <div>Followers: {{user_profile.followers.count}} </div>
+    <div>Following: {{user_profile.following.count}} </div>
+</div>
+{% if user != user_profile and user.is_authenticated %}
+    <form action="{% url 'profile' user_profile.username %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="Follow/Unfollow" class="btn btn-primary">
+    </form>
+{% endif %}
+<hr/>
+<h2>All Posts</h2>
+{% include 'network/list_posts.html' %}
+<hr />
+
+
+{% endblock %}
