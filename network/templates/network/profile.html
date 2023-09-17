@@ -9,7 +9,9 @@
 {% if user != user_profile and user.is_authenticated %}
     <form action="{% url 'profile' user_profile.username %}" method="post">
         {% csrf_token %}
-        <input type="submit" value="Follow/Unfollow" class="btn btn-primary">
+        <input type="submit" 
+        {% if user_profile in user.following.all %}value="Unfollow"
+        {% else %}value="Follow"{% endif %} class="btn btn-primary">
     </form>
 {% endif %}
 <hr/>

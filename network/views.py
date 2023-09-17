@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib import messages
@@ -37,6 +37,25 @@ def index(request):
         'posts' : posts
     })
 
+# maybe for later...
+def loadPosts(request, type):
+    # filter posts based on type
+    if type == "all":
+        posts = Post.objects.all()
+    elif type == "profile":
+        pass
+    elif type == "following":
+        pass
+    elif type =="comments":
+        pass
+    else:
+        return JsonResponse({"error": "Invalid type of posts."}, status=400)
+    
+    posts = posts.order_by('-created')
+    return JsonResponse([posts.serialize() for post in posts], safe=False)
+
+
+
 
 def profile(request, username):
     # try to get the user
@@ -71,16 +90,17 @@ def profile(request, username):
         
 
     # if GET, render profile page
-    posts = Post.objects.all().filter(user=user_profile).order_by('-created')
+    posts = Post.objects.filter(user=user_profile).order_by('-created')
     return render(request, "network/profile.html", {
         'posts' : posts,
         'user_profile': user_profile
     })
 
 def following(request):
-    # TODO!!!
-    posts = Post.objects.all().order_by('-created')
-    return render(request, "network/profile.html", {
+    # Get all posts from the users that the current user is following
+    current_user = request.user
+    posts = Post.objects.filter(user__in=current_user.following.all()).order_by('-created')
+    return render(request, "network/following.html", {
         'posts' : posts
     })
 

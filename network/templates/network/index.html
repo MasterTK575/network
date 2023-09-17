@@ -3,7 +3,10 @@
 {% block body %}
 <h1>All Posts</h1>
 
-<div class="card m-2">
+{% if user.is_authenticated %}
+<button class="btn btn-primary" id="showNewPost">New Post</button>
+
+<div class="card m-2" id="newPost">
     <div class="card-body">
         <h3 class="card-title">New Post</h3>
         <form action="{% url 'index' %}" method="post">
@@ -19,13 +22,19 @@
                 </div>
             {% endif %}
             <input type="submit" value="Post" class="btn btn-primary">
+            <button type="button" class="btn btn-outline-secondary" id="closeNewPost">Close</button>
         </form>
     </div>
 </div>
+{% endif %}
+
+<div class="listPosts"></div>
 
 {% include 'network/list_posts.html' %}
 
 <hr />
+
+<div id="showPosts"></div>
 
 
 {% endblock %}

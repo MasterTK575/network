@@ -1,0 +1,17 @@
+/* Start with the newPost div hidden */
+#newPost {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s; /* this ensures a smooth fade in and fade out */
+}
+
+/* This class will be toggled to show/hide the newPost div */
+#newPost.show-post {
+    display: block;
+    opacity: 1;
+}
+
+#showNewPost.hide-button {
+    opacity: 0;
+    display: none;
+}
