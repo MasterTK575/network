@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib import messages
 import json
+from django.db.models import Exists, OuterRef
 
 from .forms import *
 from .models import *
@@ -36,6 +37,7 @@ def index(request):
         form = PostForm()
 
     posts = Post.objects.filter(parent__isnull=True).order_by('-created')
+    posts = posts.annotate(userHasLiked=Exists(Post.likes.through.objects.filter(post_id=OuterRef('pk'), user_id=request.user.id)))
     return render(request, "network/index.html", {
         'form' : form,
         'posts' : posts
@@ -43,7 +45,7 @@ def index(request):
 
 
 def comment(request):
-     # Ensure the user is authenticated
+    # Ensure the user is authenticated
     if not request.user.is_authenticated:
         return JsonResponse({"error": "You need to be logged in to comment."}, status=400)
     
@@ -73,6 +75,35 @@ def comment(request):
     newComment.save()
     return JsonResponse({"message": "Comment posted successfully."}, status=201)
 
+
+def likePost(request):
+    # Ensure the user is authenticated
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "You need to be logged in to like a post."}, status=400)
+    
+    # liking a post must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    
+    # get the post
+    data = json.loads(request.body)
+    postId = data.get("postId", "")
+    try:
+        post = Post.objects.get(pk=postId)
+    except:
+        return JsonResponse({"error": "Coulnd't find associated post."}, status=400)
+    
+    # like or unlike the post
+    user = request.user
+    userNowLikes = False
+    if post.likes.filter(pk=user.id).exists():
+        post.likes.remove(user)
+    else:
+        post.likes.add(user)
+        userNowLikes = True
+    # update like count
+    likes = post.likes.count()
+    return JsonResponse({"message": "Like successfully updated", "likes" : likes, "userNowLikes": userNowLikes}, status=201)
 
 
 
@@ -110,6 +141,7 @@ def profile(request, username):
 
     # if GET, render profile page
     posts = Post.objects.filter(user=user_profile).order_by('-created')
+    posts = posts.annotate(userHasLiked=Exists(Post.likes.through.objects.filter(post_id=OuterRef('pk'), user_id=request.user.id)))
     return render(request, "network/profile.html", {
         'posts' : posts,
         'user_profile': user_profile
@@ -119,6 +151,7 @@ def following(request):
     # Get all posts from the users that the current user is following
     current_user = request.user
     posts = Post.objects.filter(user__in=current_user.following.all()).order_by('-created')
+    posts = posts.annotate(userHasLiked=Exists(Post.likes.through.objects.filter(post_id=OuterRef('pk'), user_id=request.user.id)))
     return render(request, "network/following.html", {
         'posts' : posts
     })
