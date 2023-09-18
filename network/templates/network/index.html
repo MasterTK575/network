@@ -4,7 +4,7 @@
 <h1>All Posts</h1>
 
 {% if user.is_authenticated %}
-<button class="btn btn-primary" id="showNewPost">New Post</button>
+<button class="btn btn-primary ml-2" id="showNewPost">New Post</button>
 
 <div class="card m-2" id="newPost">
     <div class="card-body">
@@ -28,13 +28,9 @@
 </div>
 {% endif %}
 
-<div class="listPosts"></div>
-
 {% include 'network/list_posts.html' %}
 
 <hr />
-
-<div id="showPosts"></div>
 
 
 {% endblock %}

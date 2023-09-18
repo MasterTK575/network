@@ -16,5 +16,5 @@ class Post(models.Model):
     modified = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user} commented: {self.content}"
+        return f"{self.user} said: {self.content}"
 

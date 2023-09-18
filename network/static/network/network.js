@@ -35,7 +35,7 @@ function handleCommentForm(commentButton, postContainer) {
     commentForm.setAttribute('id', 'commentForm');
     commentForm.innerHTML = `
         <div class="form-group">
-            <textarea rows=3 placeholder="Your comment..." id="commentInput" class="form-control"></textarea>
+            <textarea rows=3 required placeholder="Your comment..." id="commentInput" class="form-control"></textarea>
         </div>
         <input type="submit" id="submitComment" value="Comment" class="btn btn-primary">
         <button id="cancelComment" type="button" class="btn btn-outline-secondary">Cancel</button>
@@ -44,8 +44,8 @@ function handleCommentForm(commentButton, postContainer) {
     // Append comment form to the post container
     postContainer.appendChild(commentForm);
 
-    let submitComment = document.getElementById('submitComment');
     let commentInput = document.getElementById('commentInput');
+    commentInput.focus();
 
     // Back button to close the comment form
     let cancelComment = document.getElementById('cancelComment');
@@ -54,34 +54,43 @@ function handleCommentForm(commentButton, postContainer) {
         commentForm.remove();  // Instead of hiding, you remove the form so it can be recreated afresh
     });
 
-    // TODO!!!!
+
     // Handle the submission of the comment
-    submitComment.addEventListener('click', function(e) {
-        e.preventDefault();
-        
+    commentForm.addEventListener('submit', event => {
+        event.preventDefault();
+        // get important data
         let content = commentInput.value;
-        let post_id = postContainer.getAttribute('data-post-id'); 
+        let postId = postContainer.getAttribute('data-postId');
+
+        // if comment is empty, stop
+        if (content === "") {
+            console.log("Error, comment can't be empty!")
+            return;
+        }
+
 
         // Make AJAX call
-        fetch('/add_comment', {
+        fetch('/comment', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // Include CSRF token, if your setup needs it
+                // Include CSRF token (for example form the search form)
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             },
             body: JSON.stringify({
-                post_id: post_id,
+                postId: postId,
                 content: content
             })
         })
         .then(response => response.json())
-        .then(data => {
-            if(data.success) {
+        .then(result => {
+            if(result.success) {
                 // For simplicity, you can refresh the page to see the new comment
-                location.reload();
+                // location.reload();
+                console.log(result.message);
                 // Alternatively, append the comment to the DOM using JS
             } else {
+                console.log(result.message);
                 // Handle error, e.g., display an error message
             }
         });

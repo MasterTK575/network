@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib import messages
+import json
 
 from .forms import *
 from .models import *
@@ -31,11 +32,39 @@ def index(request):
     else:
         form = PostForm()
 
-    posts = Post.objects.all().order_by('-created')
+    posts = Post.objects.filter(parent__isnull=True).order_by('-created')
     return render(request, "network/index.html", {
         'form' : form,
         'posts' : posts
     })
+
+
+def comment(request):
+     # Ensure the user is authenticated
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "You need to be logged in to comment."}, status=400)
+    
+    # posting a comment must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    
+    # get data and commmit
+    data = json.loads(request.body)
+    content = data.get("content", "")
+    postId = data.get("postId", "")
+    try:
+        parentPost = Post.objects.get(pk=postId)
+    except:
+        return JsonResponse({"error": "Coulnd't find associated post."}, status=400)
+    newComment = Post(
+        content=content,
+        user=request.user,
+        parent=parentPost,
+    )
+    newComment.save()
+    return JsonResponse({"message": "Comment posted successfully."}, status=201)
+    
+
 
 # maybe for later...
 def loadPosts(request, type):
