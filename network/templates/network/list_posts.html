@@ -1,9 +1,10 @@
 {% for post in  posts %}
 <div class="card m-2" data-postId="{{ post.id }}">
     <div class="card-body">
-        <h5 class="card-title"><a href="{% url 'profile' post.user.username %}" class="text-reset">{{ post.user.username }}</a></h5>
+        <h5 class="card-title"><a href="{% url 'profile' post.user.username %}" class="text-decoration-none">{{ post.user.username }}</a></h5>
         <p class="card-text">{{ post.content }}</p>
-        <p class="card-subtitle text-muted mb-2">Likes: {{ post.likes.count }}</p>
+        <p class="card-subtitle text-body-secondary">Likes: {{ post.likes.count }}</p>
+        <p class="card-subtitle text-body-secondary mb-2">On: {{ post.created }}</p>
         {% if user == post.user %}
             <a href="" class="card-link edit">Edit</a>
         {% endif %}
@@ -11,7 +12,10 @@
             <a href="" class="card-link comment">Comment</a>
         {% endif %}
     </div>
-    <div class="card-footer text-muted">{{ post.created }}</div>
+    <div class="card-footer text-body-secondary"> 
+        {% if post.comments.count == 1 %} 1 Comment
+        {% else %} {{ post.comments.count }} Comments
+        {% endif %}</div>
 </div>
 {% empty %}
 <p>Wow, such empty!</p>

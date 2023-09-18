@@ -31,10 +31,10 @@ function handleCommentForm(commentButton, postContainer) {
 
     // Create the new comment form
     let commentForm = document.createElement('form');
-    commentForm.classList.add('m-2');
+    commentForm.classList.add('m-3');
     commentForm.setAttribute('id', 'commentForm');
     commentForm.innerHTML = `
-        <div class="form-group">
+        <div class="mb-2">
             <textarea rows=3 required placeholder="Your comment..." id="commentInput" class="form-control"></textarea>
         </div>
         <input type="submit" id="submitComment" value="Comment" class="btn btn-primary">
