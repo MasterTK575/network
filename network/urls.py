@@ -12,6 +12,5 @@ urlpatterns = [
     path("following", views.following, name="following"),
 
     #API Routes
-    path("comment", views.comment, name="comment"),
-    path("posts/<str:type>", views.loadPosts, name="posts")
+    path("comment", views.comment, name="comment")
 ]

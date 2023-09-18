@@ -54,8 +54,8 @@
             <div class="messages">
             {% for message in messages %}
             <div {% if message.tags %}
-                    {% if message.tags == "error" %} class="alert alert-danger"
-                    {% elif message.tags == "success" %} class="alert alert-success"
+                    {% if message.tags == "error" %} class="alert alert-danger mt-2 mb-0"
+                    {% elif message.tags == "success" %} class="alert alert-success mt-2 mb-0"
                     {% endif %}
                     role="alert"
                 {% endif %}>
@@ -64,6 +64,7 @@
             {% endfor %}
             </div>
         {% endif %}
+        <div id="showMessage"></div>
         
         <div class="body p-2">
             {% block body %}

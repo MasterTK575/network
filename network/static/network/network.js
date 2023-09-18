@@ -35,7 +35,7 @@ function handleCommentForm(commentButton, postContainer) {
     commentForm.setAttribute('id', 'commentForm');
     commentForm.innerHTML = `
         <div class="mb-2">
-            <textarea rows=3 required placeholder="Your comment..." id="commentInput" class="form-control"></textarea>
+            <textarea rows=3 required maxlength="280" placeholder="Your comment..." id="commentInput" class="form-control"></textarea>
         </div>
         <input type="submit" id="submitComment" value="Comment" class="btn btn-primary">
         <button id="cancelComment" type="button" class="btn btn-outline-secondary">Cancel</button>
@@ -64,10 +64,9 @@ function handleCommentForm(commentButton, postContainer) {
 
         // if comment is empty, stop
         if (content === "") {
-            console.log("Error, comment can't be empty!")
+            showAlert("Comment can't be empty.", "danger");
             return;
         }
-
 
         // Make AJAX call
         fetch('/comment', {
@@ -84,14 +83,16 @@ function handleCommentForm(commentButton, postContainer) {
         })
         .then(response => response.json())
         .then(result => {
-            if(result.success) {
-                // For simplicity, you can refresh the page to see the new comment
-                // location.reload();
-                console.log(result.message);
-                // Alternatively, append the comment to the DOM using JS
+            if(result.error) {
+                // if there was an error, show the message
+                showAlert(result.error, "danger");
             } else {
-                console.log(result.message);
-                // Handle error, e.g., display an error message
+                // if success, show message and remove form
+                showAlert(result.message, "success");
+                commentForm.remove();
+
+                // TODO!! add the new comment the DOM and update comment count!
+
             }
         });
     });
@@ -107,11 +108,17 @@ document.body.addEventListener('click', function(event) {
     }
 });
 
-// maybe for later
-function loadPosts (type) {
-    fetch(`/posts/${type}`)
-    .then(response => response.json())
-    .then(posts => {
-        console.log(posts);
-    })
+
+// TODO!! show alerts next to user and not top of page
+function showAlert(message, type) {
+    // remove all other alerts
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => alert.remove());
+    // create new alert
+    const alert = document.createElement('div');
+    alert.classList.add(`alert-${type}`, "alert", "mt-2", "mb-0");
+    alert.innerHTML = message;
+    document.querySelector('#showMessage').append(alert)
 }
+
+// TODO!! add functionality to dynamically show comments of a post

@@ -24,6 +24,9 @@ def index(request):
                 new_post.save()
                 messages.success(request, "Post created successfully.")
                 return HttpResponseRedirect(reverse('index'))
+            else:
+                messages.error(request, "Post is too long.")
+                return HttpResponseRedirect(reverse('index'))
         else:
             messages.error(request, "Need to be logged in to post.")
             return HttpResponseRedirect(reverse('index'))
@@ -52,10 +55,16 @@ def comment(request):
     data = json.loads(request.body)
     content = data.get("content", "")
     postId = data.get("postId", "")
+    # error checking
+    if content == "":
+        return JsonResponse({"error": "Comment can't be empty."}, status=400)
+    elif len(content) > 280:
+        return JsonResponse({"error": "Comment is too long."}, status=400)
     try:
         parentPost = Post.objects.get(pk=postId)
     except:
         return JsonResponse({"error": "Coulnd't find associated post."}, status=400)
+    
     newComment = Post(
         content=content,
         user=request.user,
@@ -63,25 +72,6 @@ def comment(request):
     )
     newComment.save()
     return JsonResponse({"message": "Comment posted successfully."}, status=201)
-    
-
-
-# maybe for later...
-def loadPosts(request, type):
-    # filter posts based on type
-    if type == "all":
-        posts = Post.objects.all()
-    elif type == "profile":
-        pass
-    elif type == "following":
-        pass
-    elif type =="comments":
-        pass
-    else:
-        return JsonResponse({"error": "Invalid type of posts."}, status=400)
-    
-    posts = posts.order_by('-created')
-    return JsonResponse([posts.serialize() for post in posts], safe=False)
 
 
 
