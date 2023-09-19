@@ -108,6 +108,95 @@ document.body.addEventListener('click', function(event) {
     }
 });
 
+// when an edit link is clicked
+document.body.addEventListener('click', e => {
+    if (e.target.matches('.edit')) {
+        e.preventDefault();
+        let editButton = e.target;
+        let postContainer = editButton.closest('.card');
+        editPostForm(editButton, postContainer);
+    }
+});
+
+function editPostForm(editButton, postContainer) {
+    // if other edit form already open, use it's "cancel-button" to replace it with the content again
+    let oldEditForm = document.querySelector('#editForm');
+    if (oldEditForm) {
+        const cancelEditEvent = new Event('click');
+        const cancelEdit = document.getElementById('cancelEdit');
+        cancelEdit.dispatchEvent(cancelEditEvent);
+    }
+
+    // remove the edit button
+    editButton.style.visibility = 'hidden';
+
+    // get the post content
+    let postContentContainer = postContainer.querySelector('.postContent');
+    let postContent = postContentContainer.textContent;
+
+    // Create the new edit form
+    let editForm = document.createElement('form');
+    editForm.classList.add('mb-2');
+    editForm.setAttribute('id', 'editForm');
+    editForm.innerHTML = `
+        <div class="mb-2">
+            <textarea rows=5 required maxlength="280" id="editInput" class="form-control">${postContent}</textarea>
+        </div>
+        <input type="submit" id="submitEdit" value="Save" class="btn btn-primary">
+        <button id="cancelEdit" type="button" class="btn btn-outline-secondary">Cancel</button>
+    `;
+
+    // replace container for post content with edit Form
+    postContentContainer.replaceWith(editForm);
+    let editInput = document.getElementById('editInput');
+    editInput.focus();
+    editInput.selectionStart = editInput.value.length;
+    editInput.selectionEnd = editInput.value.length;
+
+    // Back button to close the edit form
+    let cancelEdit = document.getElementById('cancelEdit');
+    cancelEdit.addEventListener('click', () => {
+        editButton.style.visibility = 'visible';
+        editForm.replaceWith(postContentContainer);
+    });
+
+    // handle submission of the edit form
+    editForm.addEventListener('submit', event => {
+        event.preventDefault();
+
+        // get the data
+        const newContent = editInput.value;
+        const postId = postContainer.getAttribute('data-postId');
+
+        // Make AJAX call
+        fetch('/edit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                // Include CSRF token (for example form the search form)
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                postId: postId,
+                newContent: newContent
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if(result.error) {
+                // if there was an error, show the message
+                showAlert(result.error, "danger");
+            } else {
+                // if success, remove form and replace with updated content
+                showAlert(result.message, "success");
+                editButton.style.visibility = 'visible';
+                postContentContainer.textContent = newContent;
+                editForm.replaceWith(postContentContainer);
+            }
+        });
+    })
+}
+
 // when a like button is clicked
 document.body.addEventListener('click', e => {
     let target = e.target;
@@ -157,6 +246,7 @@ function likePost(postId, postContainer) {
 
 
 // TODO!! show alerts next to user and not top of page
+// TODO!! enable users to remove an alert by clicking an X
 function showAlert(message, type) {
     // remove all other alerts
     const alerts = document.querySelectorAll('.alert');

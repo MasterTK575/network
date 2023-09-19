@@ -75,6 +75,40 @@ def comment(request):
     newComment.save()
     return JsonResponse({"message": "Comment posted successfully."}, status=201)
 
+def edit(request):
+    # Ensure the user is authenticated
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "You need to be logged in to edit a post."}, status=400)
+    
+    # posting a comment must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    
+    # get data
+    data = json.loads(request.body)
+    newContent = data.get("newContent", "")
+    postId = data.get("postId", "")
+
+    # error checking
+    if newContent == "":
+        return JsonResponse({"error": "Post can't be empty."}, status=400)
+    elif len(newContent) > 280:
+        return JsonResponse({"error": "Post is too long."}, status=400)
+    try:
+        post = Post.objects.get(pk=postId)
+    except:
+        return JsonResponse({"error": "Post doesn't exist."}, status=400)
+    
+    # can only edit your own posts
+    if not request.user == post.user:
+        return JsonResponse({"error": "Can only edit your own posts."}, status=400)
+    
+    # if all good, commit
+    post.content = newContent
+    post.save()
+    return JsonResponse({"message": "Post edited successfully."}, status=201)
+
+
 
 def likePost(request):
     # Ensure the user is authenticated

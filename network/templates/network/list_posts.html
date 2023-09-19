@@ -2,7 +2,7 @@
 <div class="card m-2" data-postId="{{ post.id }}">
     <div class="card-body">
         <h5 class="card-title"><a href="{% url 'profile' post.user.username %}" class="text-decoration-none">{{ post.user.username }}</a></h5>
-        <p class="card-text">{{ post.content }}</p>
+        <p class="card-text postContent">{{ post.content }}</p>
         <p class="card-subtitle text-body-secondary mb-2">{{ post.created }}</p>
         
         <div class="d-flex mb-1">
