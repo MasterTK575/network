@@ -6,8 +6,10 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib import messages
 import json
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Count
+from django.core import serializers
 
+from .serializers import *
 from .forms import *
 from .models import *
 
@@ -73,7 +75,8 @@ def comment(request):
         parent=parentPost,
     )
     newComment.save()
-    return JsonResponse({"message": "Comment posted successfully."}, status=201)
+    commentCount = parentPost.comments.count()
+    return JsonResponse({"message": "Comment posted successfully.", "commentCount": commentCount}, status=201)
 
 def edit(request):
     # Ensure the user is authenticated
@@ -139,6 +142,26 @@ def likePost(request):
     likes = post.likes.count()
     return JsonResponse({"message": "Like successfully updated", "likes" : likes, "userNowLikes": userNowLikes}, status=201)
 
+def showComments(request):
+    # must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    
+    # get the post
+    data = json.loads(request.body)
+    postId = data.get("postId", "")
+    try:
+        post = Post.objects.get(pk=postId)
+    except:
+        return JsonResponse({"error": "Coulnd't find associated post."}, status=400)
+    
+    # get all comments and annotate with necessary data
+    comments = post.comments.all().order_by('-created')
+    comments = comments.annotate(commentCount=Count('comments', distinct=True))
+    comments = comments.annotate(likeCount=Count('likes', distinct=True))
+    comments = comments.annotate(userHasLiked=Exists(Post.likes.through.objects.filter(post_id=OuterRef('pk'), user_id=request.user.id)))
+    comments_serialized = ExtendedPostSerializer(comments, many=True).data
+    return JsonResponse({"message": "Comments successfully retrieved.", "comments": comments_serialized}, status=201)
 
 
 def profile(request, username):

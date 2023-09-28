@@ -27,10 +27,11 @@
             <a href="" class="card-link comment">Comment</a>
         {% endif %}
     </div>
-    <div class="card-footer text-body-secondary"> 
+    <a class="card-footer text-body-secondary text-decoration-none commentCount" href="">
         {% if post.comments.count == 1 %} 1 Comment
         {% else %} {{ post.comments.count }} Comments
-        {% endif %}</div>
+        {% endif %}
+    </a>
 </div>
 {% empty %}
 <p>Wow, such empty!</p>

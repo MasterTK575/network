@@ -14,5 +14,6 @@ urlpatterns = [
     #API Routes
     path("comment", views.comment, name="comment"),
     path("edit", views.edit, name="edit"),
-    path("likePost", views.likePost, name="likePost")
+    path("likePost", views.likePost, name="likePost"),
+    path("showComments", views.showComments, name="showComments")
 ]
