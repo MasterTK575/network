@@ -290,8 +290,9 @@ function showAlert(message, type) {
     alerts.forEach(alert => alert.remove());
     // create new alert
     const alert = document.createElement('div');
-    alert.classList.add(`alert-${type}`, "alert", "mt-2", "mb-0");
-    alert.innerHTML = message;
+    alert.classList.add(`alert-${type}`, "alert", "alert-dismissible", "fade", "show", "mt-2", "mb-0");
+    alert.innerHTML = `${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`
     document.querySelector('#showMessage').append(alert)
 }
 
