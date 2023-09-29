@@ -17,21 +17,43 @@ if(closeNewPost) {
 }
 
 
+// when a comment link is clicked
+document.body.addEventListener('click', function(event) {
+    if (event.target.matches('.comment')) {
+        event.preventDefault();
+        let commentButton = event.target;
+        let postContainer = commentButton.closest('.card');
+        handleCommentForm(commentButton, postContainer);
+    }
+});
+
 // create the comment form and handle its submission
 function handleCommentForm(commentButton, postContainer) {
 
-    // remove other comment form if there is one and make comment link visible again
+    // remove other comment form if there already is one (by pressing it's 'back' button)
     let oldCommentForm = document.querySelector('#commentForm');
     if (oldCommentForm) {
-        oldCommentForm.closest('.card').querySelector('.card-body .comment').style.visibility = 'visible';
-        oldCommentForm.remove();
+        const cancelCommentEvent = new Event('click');
+        const cancelComment = document.getElementById('cancelComment');
+        cancelComment.dispatchEvent(cancelCommentEvent);
     }
-    // remove the comment button
-    commentButton.style.visibility = 'hidden';
 
+    // same for an existing edit form
+    let oldEditForm = document.querySelector('#editForm');
+    if (oldEditForm) {
+        const cancelEditEvent = new Event('click');
+        const cancelEdit = document.getElementById('cancelEdit');
+        cancelEdit.dispatchEvent(cancelEditEvent);
+    }
+
+    // show that the comment button was clicked
+    commentButton.classList.add('text-body-secondary');
+    commentButton.style.pointerEvents = "none";
+
+    
     // Create the new comment form
     let commentForm = document.createElement('form');
-    commentForm.classList.add('m-3');
+    commentForm.classList.add('m-2');
     commentForm.setAttribute('id', 'commentForm');
     commentForm.innerHTML = `
         <div class="mb-2">
@@ -42,7 +64,8 @@ function handleCommentForm(commentButton, postContainer) {
     `;
 
     // Append comment form to the post container
-    postContainer.appendChild(commentForm);
+    postContainer.querySelector('.commentCount').insertAdjacentElement('afterend', commentForm);
+
 
     let commentInput = document.getElementById('commentInput');
     commentInput.focus();
@@ -50,7 +73,8 @@ function handleCommentForm(commentButton, postContainer) {
     // Back button to close the comment form
     let cancelComment = document.getElementById('cancelComment');
     cancelComment.addEventListener('click', () => {
-        commentButton.style.visibility = 'visible';
+        commentButton.classList.remove('text-body-secondary');
+        commentButton.style.pointerEvents = "auto";
         commentForm.remove();  // Instead of hiding, you remove the form so it can be recreated afresh
     });
 
@@ -89,7 +113,8 @@ function handleCommentForm(commentButton, postContainer) {
             } else {
                 // if success, show message and remove form
                 showAlert(result.message, "success");
-                commentButton.style.visibility = 'visible';
+                commentButton.classList.remove('text-body-secondary');
+                commentButton.style.pointerEvents = "auto";
                 commentForm.remove();
                 // update comment count
                 const commentCountContainer = postContainer.querySelector('.commentCount');
@@ -108,15 +133,6 @@ function handleCommentForm(commentButton, postContainer) {
     });
 }
 
-// when a comment link is clicked
-document.body.addEventListener('click', function(event) {
-    if (event.target.matches('.comment')) {
-        event.preventDefault();
-        let commentButton = event.target;
-        let postContainer = commentButton.closest('.card');
-        handleCommentForm(commentButton, postContainer);
-    }
-});
 
 // when an edit link is clicked
 document.body.addEventListener('click', e => {
@@ -129,6 +145,7 @@ document.body.addEventListener('click', e => {
 });
 
 function editPostForm(editButton, postContainer) {
+
     // if other edit form already open, use it's "cancel-button" to replace it with the content again
     let oldEditForm = document.querySelector('#editForm');
     if (oldEditForm) {
@@ -137,8 +154,17 @@ function editPostForm(editButton, postContainer) {
         cancelEdit.dispatchEvent(cancelEditEvent);
     }
 
-    // remove the edit button
-    editButton.style.visibility = 'hidden';
+    // same for an existing comment form
+    let oldCommentForm = document.querySelector('#commentForm');
+    if (oldCommentForm) {
+        const cancelCommentEvent = new Event('click');
+        const cancelComment = document.getElementById('cancelComment');
+        cancelComment.dispatchEvent(cancelCommentEvent);
+    }
+
+    // show that the edit button was clicked
+    editButton.classList.add('text-body-secondary');
+    editButton.style.pointerEvents = "none";
 
     // get the post content
     let postContentContainer = postContainer.querySelector('.postContent');
@@ -166,7 +192,8 @@ function editPostForm(editButton, postContainer) {
     // Back button to close the edit form
     let cancelEdit = document.getElementById('cancelEdit');
     cancelEdit.addEventListener('click', () => {
-        editButton.style.visibility = 'visible';
+        editButton.classList.remove('text-body-secondary');
+        editButton.style.pointerEvents = "auto";
         editForm.replaceWith(postContentContainer);
     });
 
@@ -199,7 +226,8 @@ function editPostForm(editButton, postContainer) {
             } else {
                 // if success, remove form and replace with updated content
                 showAlert(result.message, "success");
-                editButton.style.visibility = 'visible';
+                editButton.classList.remove('text-body-secondary');
+                editButton.style.pointerEvents = "auto";
                 postContentContainer.textContent = newContent;
                 editForm.replaceWith(postContentContainer);
             }
@@ -268,7 +296,7 @@ function showAlert(message, type) {
 }
 
 
-// when a showComments link is clicked
+// when the commentCount link is clicked to show all comments
 document.body.addEventListener('click', e => {
     if (e.target.matches('.commentCount')) {
         e.preventDefault();
@@ -306,24 +334,29 @@ function showComments(postContainer) {
             showAlert(result.error, "danger");
         } else if (result.message) {
             // meaning SUCCESS
-            // make new Container to render the comments in
-            const renderCommentsContainer = document.createElement('div');
-            renderCommentsContainer.classList.add('renderComments');
-            postContainer.querySelector('.commentCount').insertAdjacentElement('afterend', renderCommentsContainer);
+            if(result.comments.length === 0) {
+                // No comments retrieved
+                console.log("No comments for this post.");
+                return
+            } else {
+                // make new Container to render the comments in
+                const renderCommentsContainer = document.createElement('div');
+                renderCommentsContainer.classList.add('renderComments', 'm-1');
+                postContainer.appendChild(renderCommentsContainer);
 
-            const comments = result.comments
-            console.log(comments);
-            // loop through comments, create one element for each
-            comments.forEach(comment => {
-                const commentContainer = document.createElement('div');
-                renderCommentsContainer.appendChild(commentContainer);
-                ReactDOM.render(<DynamicComment comment={comment} />, commentContainer);
-            });
+                const comments = result.comments
+                // loop through comments, create one element for each
+                comments.forEach(comment => {
+                    const commentContainer = document.createElement('div');
+                    renderCommentsContainer.appendChild(commentContainer);
+                    ReactDOM.render(<DynamicComment comment={comment} userId={result.userId} />, commentContainer);
+                });
+            }
         }
     });
 }
 
-// TODO!! add check for edit and comment link!
+
 function DynamicComment(props) {
     const { comment } = props;
     return (
@@ -350,8 +383,12 @@ function DynamicComment(props) {
                     </a>
                     <p className="card-subtitle text-body-secondary ms-1 pt-1 likeCount">{comment.likeCount}</p>
                 </div>
-                <a href="#" className="card-link edit">Edit</a>
-                <a href="" className="card-link comment">Comment</a>
+                {props.userId && props.userId === comment.user &&
+                    <a href="#" className="card-link edit">Edit</a>
+                }
+                {props.userId && 
+                    <a href="" className="card-link comment">Comment</a>
+                }
             </div>
             <a className="card-footer text-body-secondary text-decoration-none commentCount" href="">
                 {comment.commentCount === 1 ? '1 Comment' : `${comment.commentCount} Comments`}
@@ -374,50 +411,6 @@ function formatDate(isoString) {
     // Construct the formatted string
     return `${month}. ${day}, ${year}, ${hour}:${minute} ${ampm}`;
 }
-
-
-
-function DynamicCommentOld(props) {
-    const { comment } = props;
-    return (
-        <div className="card m-2" data-postId={comment.id}>
-            <div className="card-body">
-                <h5 className="card-title">
-                    <a href={`/profile/${comment.user.username}`} className="text-decoration-none">
-                        {comment.user.username}
-                    </a>
-                </h5>
-                <p className="card-text postContent">{comment.content}</p>
-                <p className="card-subtitle text-body-secondary mb-2">{new Date(comment.created).toLocaleDateString()}</p>
-                <div className="d-flex mb-1">
-                    <a href="#" className="likeButton">
-                        {comment.userHasLiked ?
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" className="bi bi-heart-fill" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/>
-                            </svg>
-                            :
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="black" className="bi bi-heart" viewBox="0 0 16 16">
-                                <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-                            </svg>
-                        }
-                    </a>
-                    <p className="card-subtitle text-body-secondary ms-1 pt-1 likeCount">{comment.likesCount}</p>
-                </div>
-                
-                {props.user && props.user.id === comment.user.id &&
-                    <a href="#" className="card-link edit">Edit</a>
-                }
-                {props.user && 
-                    <a href="" className="card-link comment">Comment</a>
-                }
-            </div>
-            <a className="card-footer text-body-secondary text-decoration-none commentCount" href="">
-                {comment.commentsCount === 1 ? '1 Comment' : `${comment.commentsCount} Comments`}
-            </a>
-        </div>
-    );
-}
-
 
 
 // TODO!! show if there is a parent comment and enable users to see it

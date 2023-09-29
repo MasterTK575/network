@@ -155,13 +155,16 @@ def showComments(request):
     except:
         return JsonResponse({"error": "Coulnd't find associated post."}, status=400)
     
+    # get userId if they are authenticated
+    userId = request.user.pk if request.user.is_authenticated else None
+
     # get all comments and annotate with necessary data
     comments = post.comments.all().order_by('-created')
     comments = comments.annotate(commentCount=Count('comments', distinct=True))
     comments = comments.annotate(likeCount=Count('likes', distinct=True))
     comments = comments.annotate(userHasLiked=Exists(Post.likes.through.objects.filter(post_id=OuterRef('pk'), user_id=request.user.id)))
     comments_serialized = ExtendedPostSerializer(comments, many=True).data
-    return JsonResponse({"message": "Comments successfully retrieved.", "comments": comments_serialized}, status=201)
+    return JsonResponse({"message": "Comments successfully retrieved.", "comments": comments_serialized, "userId": userId}, status=201)
 
 
 def profile(request, username):
