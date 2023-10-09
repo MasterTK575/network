@@ -1,0 +1,21 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+<h1>Your Search Result</h1>
+
+<div>Users that matched your search:</div>
+{% for user in  users %}
+    <div>{{ user.username }}</div>
+{% empty %}
+<p>Wow, such empty!</p>
+{% endfor %}
+
+<hr />
+
+<div>Posts that matched your search:</div>
+{% include 'network/list_posts.html' %}
+
+<hr />
+
+
+{% endblock %}

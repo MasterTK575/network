@@ -283,7 +283,7 @@ function likePost(postId, postContainer) {
 
 
 // TODO!! show alerts next to user and not top of page
-// TODO!! enable users to remove an alert by clicking an X
+// TODO!! check if users can dismiss all alerts!
 function showAlert(message, type) {
     // remove all other alerts
     const alerts = document.querySelectorAll('.alert');
@@ -416,7 +416,5 @@ function formatDate(isoString) {
 
 // TODO!! show if there is a parent comment and enable users to see it
 
-// TODO!! search bar
-document.querySelector('#searchBar').addEventListener('submit', e => {
-    e.preventDefault();
-});
+// TODO!! style search result
+//TODO!! Pagination

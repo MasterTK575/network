@@ -10,6 +10,7 @@ urlpatterns = [
     path("register", views.register, name="register"),
     path("user/<str:username>", views.profile, name="profile"),
     path("following", views.following, name="following"),
+    path("search", views.search, name="search"),
 
     #API Routes
     path("comment", views.comment, name="comment"),

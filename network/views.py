@@ -216,6 +216,25 @@ def following(request):
         'posts' : posts
     })
 
+def search(request):
+    if request.method == "POST":
+        searchString = request.POST.get("search", "").strip()
+        if not searchString:
+            messages.error(request, "Search can't be empty.")
+            return HttpResponseRedirect(reverse('index'))
+        users = User.objects.filter(username__icontains=searchString)
+        posts = Post.objects.filter(content__icontains=searchString)
+
+        return render(request, "network/search.html", {
+        'posts' : posts,
+        'users': users
+    })
+
+
+    return HttpResponseRedirect(reverse('index'))
+
+
+
 
 def login_view(request):
     if request.method == "POST":
