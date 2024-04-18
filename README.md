@@ -1,5 +1,3 @@
-**README.md**
-
 # Social Network Project
 
 ## Overview
